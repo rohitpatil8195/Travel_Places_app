@@ -4,8 +4,25 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".activities.MainActivity">
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_happy_places_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        tools:visibility="gone"
+        />
+       <TextView
+           android:id="@+id/tv_no_record"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:gravity="center"
+           android:text="@string/note_text_no_happy_place_found"
+           android:textSize="@dimen/no_record_found_text_size"
+           android:visibility="visible"
+           tools:visibility="visible"
+           />
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabHappyFace"
         android:layout_width="wrap_content"
