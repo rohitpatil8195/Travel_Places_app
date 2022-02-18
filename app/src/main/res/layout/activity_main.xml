@@ -12,6 +12,8 @@
         android:layout_height="match_parent"
         android:visibility="gone"
         tools:visibility="gone"
+        tools:listitem="@layout/item_happy_place"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         />
        <TextView
            android:id="@+id/tv_no_record"
