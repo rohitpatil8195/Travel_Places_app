@@ -7,14 +7,17 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import android.widget.Toast
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.happyplaces.R
 import com.example.happyplaces.adapters.HappyPlacesAdapter
 import com.example.happyplaces.database.DatabaseHandler
 import com.example.happyplaces.models.HappyPlaceModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import pl.kitek.rvswipetodelete.SwipeToEditCallback
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),HappyPlacesAdapter.onClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -27,14 +30,26 @@ class MainActivity : AppCompatActivity() {
 
           }
         getHappyPlacesFromLocalDB()
+
+
     }
+
 
     private fun setUpHappyPlacesRecyclerView(
         happyPlaceList: ArrayList<HappyPlaceModel>
     ){
-     val adapter = HappyPlacesAdapter(happyPlaceList)
+     val adapter = HappyPlacesAdapter(happyPlaceList ,this)
         val rv_happy_places_list = findViewById<RecyclerView>(R.id.rv_happy_places_list)
         rv_happy_places_list?.adapter =adapter
+
+
+           val editSwipeHandler = object : SwipeToEditCallback(this){
+               override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                   adapter.deleteItem(viewHolder.adapterPosition)
+               }
+           }
+        val touchHelper =ItemTouchHelper(editSwipeHandler)
+        touchHelper.attachToRecyclerView(rv_happy_places_list)
     }
 
     private fun getHappyPlacesFromLocalDB(){
@@ -68,7 +83,21 @@ class MainActivity : AppCompatActivity() {
             Log.e("Activity","Back Pressed or cancelled")
         }
     }
+
+
+
+    override fun onItemClick(position: Int, model: ArrayList<HappyPlaceModel>) {
+        val model =model[position]
+        Log.e("clicked","item clicked at $model")
+        val intent = Intent(this,HappyPlaceDetailActivity::class.java)
+        intent.putExtra(EXTRA_PLACE_DETAILS,model)
+        startActivity(intent)
+    }
+
+
     companion object{
         var ADD_ACTIVITY_REQUEST_CODE =1
+         var EXTRA_PLACE_DETAILS = "extra_place_details"
+
     }
 }
