@@ -9,4 +9,5 @@
     <string name="note_text_no_happy_place_found">No Happy Places Found!</string>
 
     <string name="image_content_description">image</string>
+    <string name="google_maps_api_key">Add Your Google Api key Here</string>
 </resources>

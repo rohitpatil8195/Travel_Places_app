@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.happyplaces.activities.AddHappyPlaceActivity
 import com.example.happyplaces.activities.MainActivity
+import com.example.happyplaces.database.DatabaseHandler
 import com.example.happyplaces.models.HappyPlaceModel
 import com.example.happyplaces.databinding.ItemHappyPlaceBinding
 
@@ -60,16 +61,16 @@ open class HappyPlacesAdapter(
 //     }
 
 
-     fun deleteItem(position: Int){
+     fun updateItem(activity: Activity,position: Int,requestCode:Int){
+         val intent = Intent(activity,AddHappyPlaceActivity::class.java)
+         intent.putExtra(MainActivity.EXTRA_PLACE_DETAILS,list[position])
+         activity.startActivityForResult(intent,requestCode)
        //  fun onItemSwipe(position)
 
-         list.removeAt(position)
-         notifyDataSetChanged()
+       //  list.removeAt(position)
+          notifyItemChanged(position)
      }
 
-      fun editItem(position: Int){
-
-      }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val model = list[position]
@@ -81,8 +82,18 @@ open class HappyPlacesAdapter(
       return list.size
     }
 
+    fun removeAt(activity: Activity,position: Int) {
+         val dbHandler =DatabaseHandler(activity)
+        val isDelete = dbHandler.deleteHappyPlace(list[position])
+         if(isDelete > 0){
+             list.removeAt(position)
+             notifyItemRemoved(position)
+         }
 
-     interface onClickListener{
+    }
+
+
+    interface onClickListener{
          fun onItemClick(position: Int, model: ArrayList<HappyPlaceModel>)
      }
 

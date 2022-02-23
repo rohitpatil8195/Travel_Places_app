@@ -68,6 +68,46 @@ class DatabaseHandler(context: Context):
 
     }
 
+
+
+
+    fun updateHappyPlace(happyPlace:HappyPlaceModel):Int{
+        val db = this.writableDatabase
+
+        val contentValue = ContentValues()
+        contentValue.put(KEY_TITLE , happyPlace.title)
+        contentValue.put(KEY_IMAGE , happyPlace.image)
+        contentValue.put(KEY_DESCRIPTION , happyPlace.description)
+        contentValue.put(KEY_DATE , happyPlace.date)
+        contentValue.put(KEY_LOCATION , happyPlace.location)
+        contentValue.put(KEY_LATITUDE , happyPlace.latitude)
+        contentValue.put(KEY_LONGITUDE , happyPlace.longitude)
+
+
+        // Updating row
+        val success = db.update(
+            TABLE_HAPPY_PLACE,
+            contentValue,
+            KEY_ID + "=" +happyPlace.id,
+            null
+        )
+        //2nd argument is string contains nullColumnHack
+        db.close()
+        return success
+
+    }
+
+
+
+    fun deleteHappyPlace(happyPlace: HappyPlaceModel): Int {
+         val db = this.writableDatabase
+        val success = db.delete(TABLE_HAPPY_PLACE, KEY_ID + "=" + happyPlace.id, null)
+        db.close()
+        return success
+    }
+
+
+
    fun getHappyPlacesList():ArrayList<HappyPlaceModel>{
         val happyPlaceList: ArrayList<HappyPlaceModel> = ArrayList<HappyPlaceModel>()
        val selectQuery ="SELECT * FROM $TABLE_HAPPY_PLACE"
@@ -97,6 +137,8 @@ class DatabaseHandler(context: Context):
        }
        return happyPlaceList
    }
+
+
     //end
 }
 //end

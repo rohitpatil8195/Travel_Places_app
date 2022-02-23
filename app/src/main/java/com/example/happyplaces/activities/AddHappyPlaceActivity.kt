@@ -1,5 +1,6 @@
 package com.example.happyplaces.activities
 
+import android.R.attr
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.DatePickerDialog
@@ -12,6 +13,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Parcelable
 import android.provider.MediaStore
 import android.provider.Settings
 import android.util.Log
@@ -27,6 +29,10 @@ import com.example.happyplaces.R
 import com.example.happyplaces.database.DatabaseHandler
 import com.example.happyplaces.databinding.ActivityAddHappyPlaceBinding
 import com.example.happyplaces.models.HappyPlaceModel
+import com.google.android.libraries.places.api.Places
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.widget.Autocomplete
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
@@ -36,8 +42,13 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.OutputStream
+import java.lang.Exception
 import java.text.SimpleDateFormat
 import java.util.*
+import android.R.attr.data
+
+
+
 
 class AddHappyPlaceActivity : AppCompatActivity(),View.OnClickListener {
     private var binding:ActivityAddHappyPlaceBinding?=null
@@ -45,9 +56,11 @@ class AddHappyPlaceActivity : AppCompatActivity(),View.OnClickListener {
     private lateinit var dateSetListner: DatePickerDialog.OnDateSetListener
     private lateinit var galleryImageResultLauncher: ActivityResultLauncher<Intent>
      private lateinit var resultLauncherCamera:ActivityResultLauncher<Intent>
+     private lateinit var resultForGoogleAutocomplete: ActivityResultLauncher<Intent>
      private var saveImageToInternalStorage:Uri ?=null
       private var mLatitude:Double = 0.0
     private var mLongitude:Double = 0.0
+    private var mHappyPlacesDetails:HappyPlaceModel ?=null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,19 +78,43 @@ class AddHappyPlaceActivity : AppCompatActivity(),View.OnClickListener {
             cal.set(Calendar.DAY_OF_MONTH,dayOfMonth)
             updateDate()
         }
+
+         if(!Places.isInitialized()){
+             Places.initialize(this@AddHappyPlaceActivity ,resources.getString(R.string.google_maps_api_key))
+         }
+
+        if (intent.hasExtra(MainActivity.EXTRA_PLACE_DETAILS)){
+            mHappyPlacesDetails = intent.getParcelableExtra<Parcelable>(MainActivity.EXTRA_PLACE_DETAILS) as HappyPlaceModel
+        }
+
+
          updateDate()
-//        val et_date = findViewById<AppCompatEditText>(R.id.et_date)
-//        et_date.setOnClickListener(this)
+        if (mHappyPlacesDetails != null){
+            supportActionBar?.title ="Edit Happy Place"
+            binding?.etTitle?.setText(mHappyPlacesDetails!!.title)
+            binding?.etDescription?.setText(mHappyPlacesDetails!!.description)
+            binding?.etDate?.setText(mHappyPlacesDetails!!.date)
+            binding?.etLocation?.setText(mHappyPlacesDetails!!.location)
+            mLatitude =mHappyPlacesDetails!!.latitude
+            mLongitude=mHappyPlacesDetails!!.longitude
+
+            saveImageToInternalStorage = Uri.parse(
+                mHappyPlacesDetails!!.image
+            )
+            binding?.ivPlaceImage?.setImageURI(saveImageToInternalStorage)
+            binding?.btnSave?.setText("UPDATE")
+
+        }
+
         binding?.etDate?.setOnClickListener(this)
-
-//        val tv_add_image = findViewById<TextView>(R.id.tv_add_image)
-//        tv_add_image.setOnClickListener(this)
         binding?.tvAddImage?.setOnClickListener(this)
-
         binding?.btnSave?.setOnClickListener(this)
+        binding?.etLocation?.setOnClickListener(this)
 
         registerOnActivityForResult()
         registerOnActivityForResultForCamera()
+        startActivityForgetResult()
+
 
 
     }
@@ -185,7 +222,7 @@ class AddHappyPlaceActivity : AppCompatActivity(),View.OnClickListener {
                    }
                    else ->{
                     val happyPlaceModel = HappyPlaceModel(
-                        0,
+                        if(mHappyPlacesDetails  == null) 0 else mHappyPlacesDetails!!.id,
                         binding?.etTitle?.text.toString(),
                         saveImageToInternalStorage.toString(),
                         binding?.etDescription?.text.toString(),
@@ -195,19 +232,56 @@ class AddHappyPlaceActivity : AppCompatActivity(),View.OnClickListener {
                         mLongitude
                     )
                        val dbHandler = DatabaseHandler(this)
+                        if(mHappyPlacesDetails == null){
                        val addHappyPlace = dbHandler.addHappyPlace(happyPlaceModel)
-                       if(addHappyPlace > 0){
-                           setResult(Activity.RESULT_OK)
-                           //Toast.makeText(this,"Happy place details are inserted successful",Toast.LENGTH_LONG).show()
-                           finish()
-                       }
+                            if(addHappyPlace > 0){
+                                setResult(Activity.RESULT_OK)
+                                finish()
+                            }
+                        }else{
+                            val updateHappyPlace = dbHandler.updateHappyPlace(happyPlaceModel)
+                            if(updateHappyPlace > 0){
+                                setResult(Activity.RESULT_OK)
+                                finish()
+                            }
+                        }
+
 
                    }
                }
 
            }
+             R.id.et_location ->{
+                 try {
+                        val fields= listOf(
+                            Place.Field.ID,Place.Field.NAME,
+                            Place.Field.LAT_LNG,
+                            Place.Field.ADDRESS
+                        )
+                     val intent =
+                         Autocomplete.IntentBuilder(AutocompleteActivityMode.FULLSCREEN,fields)
+                             .build(this)
+                     resultForGoogleAutocomplete.launch(intent)
+
+                 }catch (e:Exception){
+                     e.printStackTrace()
+                 }
+             }
        }
     }
+
+    private fun startActivityForgetResult() {
+        resultForGoogleAutocomplete=registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ data ->
+          //  Log.e("data","$data")
+
+        val place = data.data
+            Log.e("Places","$place")
+//        binding?.etLocation?.setText(place.address)
+//        mLatitude = place.latLng!!.latitude
+//        mLongitude =place.latLng!!.longitude
+        }
+    }
+
 
     private fun choosePhotoFromGallary() {
         Dexter.withContext(this)
@@ -300,7 +374,9 @@ class AddHappyPlaceActivity : AppCompatActivity(),View.OnClickListener {
 
     companion object{
         private const val IMAGE_DIRECTORY= "HappyPlacesImages"
+        private const val PLACE_AUTOCOMPLETE_REQUEST_CODE =3
     }
+
 }
 
 

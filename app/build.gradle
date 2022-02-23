@@ -45,6 +45,8 @@ dependencies {
     implementation 'it.xabaras.android:recyclerview-swipedecorator:1.2.3'
     implementation 'com.karumi:dexter:6.2.3'
     implementation 'de.hdodenhof:circleimageview:3.1.0'
+    implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.google.android.libraries.places:places:2.1.0'
     debugImplementation 'im.dino:dbinspector:3.4.1@aar'
 
     testImplementation 'junit:junit:4.+'

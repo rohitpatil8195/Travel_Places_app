@@ -15,6 +15,7 @@ import com.example.happyplaces.adapters.HappyPlacesAdapter
 import com.example.happyplaces.database.DatabaseHandler
 import com.example.happyplaces.models.HappyPlaceModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.happyplaces.utils.SwipeToDeleteCallback
 import pl.kitek.rvswipetodelete.SwipeToEditCallback
 
 class MainActivity : AppCompatActivity(),HappyPlacesAdapter.onClickListener {
@@ -45,11 +46,25 @@ class MainActivity : AppCompatActivity(),HappyPlacesAdapter.onClickListener {
 
            val editSwipeHandler = object : SwipeToEditCallback(this){
                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                   adapter.deleteItem(viewHolder.adapterPosition)
+                   val adapter = rv_happy_places_list.adapter as HappyPlacesAdapter
+                   adapter.updateItem(this@MainActivity,viewHolder.adapterPosition,
+                       ADD_ACTIVITY_REQUEST_CODE)
                }
            }
-        val touchHelper =ItemTouchHelper(editSwipeHandler)
-        touchHelper.attachToRecyclerView(rv_happy_places_list)
+        val editTouchHelper =ItemTouchHelper(editSwipeHandler)
+        editTouchHelper.attachToRecyclerView(rv_happy_places_list)
+
+
+        val deleteSwipeHandler = object : SwipeToDeleteCallback(this){
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val adapter = rv_happy_places_list.adapter as HappyPlacesAdapter
+                adapter.removeAt(this@MainActivity,viewHolder.adapterPosition)
+                getHappyPlacesFromLocalDB()
+            }
+        }
+        val deleteTouchHelper =ItemTouchHelper(deleteSwipeHandler)
+        deleteTouchHelper.attachToRecyclerView(rv_happy_places_list)
+
     }
 
     private fun getHappyPlacesFromLocalDB(){
@@ -63,12 +78,8 @@ class MainActivity : AppCompatActivity(),HappyPlacesAdapter.onClickListener {
          tv_no_record.visibility =View.GONE
          setUpHappyPlacesRecyclerView(getHappyPlaceList)
 
-//          for(i in getHappyPlaceList){
-//              Log.e("title",i.title)
-//              Log.e("Description",i.description)
-//          }
      }else{
-         rv_happy_places_list.visibility = View.INVISIBLE
+         rv_happy_places_list.visibility = View.GONE
          tv_no_record.visibility =View.VISIBLE
      }
     }
