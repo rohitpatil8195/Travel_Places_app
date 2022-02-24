@@ -47,6 +47,7 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
     implementation 'com.google.android.libraries.places:places:2.1.0'
+    implementation "com.google.android.gms:play-services-location:16.0.0"
     debugImplementation 'im.dino:dbinspector:3.4.1@aar'
 
     testImplementation 'junit:junit:4.+'
